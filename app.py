@@ -5,7 +5,6 @@ import requests
 import logging
 from flask import Flask, request, jsonify
 
-# تنظیم سیستم لاگ
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 app = Flask(__name__)
@@ -14,7 +13,7 @@ app = Flask(__name__)
 WEEX_API_KEY = 'YOUR_API_KEY'
 WEEX_SECRET_KEY = 'YOUR_SECRET_KEY'
 WEEX_PASSPHRASE = 'YOUR_PASSPHRASE'
-WEEX_URL = "https://weex.com" # آدرس صحیح فیوچرز ویکس
+WEEX_URL = "https://weex.com" 
 
 # رمز عبور اختصاصی وب‌هوک شما برای تریدینگ‌ویو
 WEBHOOK_SECRET_PASSWORD = "MY_SECURE_PASSWORD_123"
@@ -76,7 +75,6 @@ def webhook():
 
         logging.info(f"Signal Received: {data}")
 
-        # امنیت وب‌هوک
         if data.get("secret") != WEBHOOK_SECRET_PASSWORD:
             logging.warning("Unauthorized access attempt!")
             return jsonify({"status": "unauthorized"}), 401
