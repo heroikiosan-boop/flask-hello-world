@@ -66,7 +66,7 @@ def execute_weex_order(symbol, action, quantity):
     }
     return send_weex_request(path, params)
 
-@app.route('/webhook', methods=['POST'])
+@app.route('/webhook/', methods=['POST'])
 def webhook():
     try:
         data = request.json
