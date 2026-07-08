@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 app = Flask(__name__)
 
-# --- تنظیمات صرافی ویکس (کلیدهای خود را دقیقاً بین علامت '' بگذارید) ---
+# --- CONFIG ---
 WEEX_API_KEY = 'weex_57af930315aa859c641c180987f8ff5d'
 WEEX_SECRET_KEY = '92f41c4b5fbe11fced7aa776dd305ae2e6600fc6e985d3df2ce94e8947293859'
 WEEX_PASSPHRASE = 'Mosi4219sadra'
@@ -22,7 +22,7 @@ def send_weex_request(path, params):
     params['sign'] = get_weex_sign(params, WEEX_SECRET_KEY)
     headers = {"Content-Type": "application/json"}
     try:
-        res = requests.post(WEEX_URL + path, json=params, headers=headers, timeout=10)
+        res = requests.post(WEEX_URL + path, json=params, headers=headers, timeout=15)
         return res.json()
     except Exception as e:
         logging.error(f"Connection Error: {e}")
