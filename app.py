@@ -13,7 +13,7 @@ app = Flask(__name__)
 WEEX_API_KEY = 'weex_57af930315aa859c641c180987f8ff5d'
 WEEX_SECRET_KEY = '92f41c4b5fbe11fced7aa776dd305ae2e6600fc6e985d3df2ce94e8947293859'
 WEEX_PASSPHRASE = 'Mosi4219sadra'
-WEEX_URL = "https://api-swap.weex.com" 
+WEEX_URL = "https://contract-openapi.weex.com" 
 
 # رمز عبور اختصاصی وب‌هوک شما برای تریدینگ‌ویو
 WEBHOOK_SECRET_PASSWORD = "MY_SECURE_PASSWORD_123"
