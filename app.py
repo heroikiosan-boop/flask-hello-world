@@ -1,21 +1,14 @@
-import time
-import hmac
-import hashlib
-import requests
-import logging
+import time, hmac, hashlib, requests, logging, json
 from flask import Flask, request, jsonify
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 app = Flask(__name__)
 
-# --- 1. تنظیمات صرافی ویکس (مشخصات خود را دقیقاً اینجا وارد کنید) ---
+# --- تنظیمات صرافی ویکس (کلیدهای خود را دقیقاً بین علامت '' بگذارید) ---
 WEEX_API_KEY = 'weex_57af930315aa859c641c180987f8ff5d'
 WEEX_SECRET_KEY = '92f41c4b5fbe11fced7aa776dd305ae2e6600fc6e985d3df2ce94e8947293859'
 WEEX_PASSPHRASE = 'Mosi4219sadra'
-WEEX_URL = "https://contract-openapi.weex.com" 
-
-# رمز عبور اختصاصی وب‌هوک شما برای تریدینگ‌ویو
+WEEX_URL = "https://weex.com"
 WEBHOOK_SECRET_PASSWORD = "MY_SECURE_PASSWORD_123"
 
 def get_weex_sign(params, secret_key):
@@ -27,73 +20,46 @@ def send_weex_request(path, params):
     params['passphrase'] = WEEX_PASSPHRASE
     params['timestamp'] = str(int(time.time() * 1000))
     params['sign'] = get_weex_sign(params, WEEX_SECRET_KEY)
-
     headers = {"Content-Type": "application/json"}
-    url = WEEX_URL + path
     try:
-        response = requests.post(url, json=params, headers=headers, timeout=10)
-        return response.json()
+        res = requests.post(WEEX_URL + path, json=params, headers=headers, timeout=10)
+        return res.json()
     except Exception as e:
         logging.error(f"Connection Error: {e}")
         return None
 
-def setup_weex_leverage(symbol, leverage=10):
-    path = "/api/v1/futures/changeLeverage"
-    params = {
-        "symbol": symbol.upper(),
-        "leverage": str(leverage),
-        "marginMode": "ISOLATED"
-    }
-    return send_weex_request(path, params)
-
-def execute_weex_order(symbol, action, quantity):
-    setup_weex_leverage(symbol, leverage=10)
-    path = "/api/v1/futures/order"
+def execute_weex_order(symbol, action):
+    path = "/capi/v3/order"
+    trade_side = "BUY" if action.lower() in ["buy", "long"] else "SELL"
+    pos_side = "LONG" if action.lower() in ["buy", "long"] else "SHORT"
     
-    action_mapping = {
-        "buy": "open_long",
-        "sell": "open_short",
-        "close_long": "close_long",
-        "close_short": "close_short"
-    }
-    trade_side = action_mapping.get(action.lower(), "open_long")
-
     params = {
         "symbol": symbol.upper(),
         "side": trade_side,
-        "type": "market",
-        "quantity": str(quantity)
+        "positionSide": pos_side,
+        "type": "MARKET",
+        "quantity": "0.01"
     }
     return send_weex_request(path, params)
 
 @app.route('/webhook/', methods=['POST'])
 def webhook():
     try:
-        data = request.json
-        if not data:
-            return jsonify({"status": "error", "message": "No data received"}), 400
-
+        raw_data = request.data.decode('utf-8').strip().strip('"')
+        data = json.loads(raw_data)
         logging.info(f"Signal Received: {data}")
-
         if data.get("secret") != WEBHOOK_SECRET_PASSWORD:
-            logging.warning("Unauthorized access attempt!")
             return jsonify({"status": "unauthorized"}), 401
-
+        
         symbol = data.get("market")
         action = data.get("action")
-        quantity = data.get("amount")
-
-        if symbol and action and quantity:
-            result = execute_weex_order(symbol, action, quantity)
-            if result and result.get("code") == "0":
-                return jsonify({"status": "success", "order_id": result.get("data", {}).get("orderId")}), 200
-            else:
-                return jsonify({"status": "exchange_error", "details": result}), 400
-        else:
-            return jsonify({"status": "missing_data"}), 400
-
+        
+        if symbol and action:
+            result = execute_weex_order(symbol, action)
+            return jsonify({"status": "processed", "response": result}), 200
+        return jsonify({"status": "missing_data"}), 400
     except Exception as e:
-        logging.error(f"Webhook Error: {e}")
+        logging.error(f"Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':
