@@ -20,7 +20,7 @@ def send_weex_request(path, params):
     params['passphrase'] = WEEX_PASSPHRASE
     params['timestamp'] = str(int(time.time() * 1000))
     params['sign'] = get_weex_sign(params, WEEX_SECRET_KEY)
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": "application/json", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
     try:
         res = requests.post(WEEX_URL + path, json=params, headers=headers, timeout=15)
         return res.json()
