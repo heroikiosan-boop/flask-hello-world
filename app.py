@@ -64,3 +64,7 @@ def webhook():
 
 if __name__ == '__main__':
     app.run()
+
+@app.route('/ping', methods=['GET', 'POST'])
+def cron_ping():
+    return "OK", 200
